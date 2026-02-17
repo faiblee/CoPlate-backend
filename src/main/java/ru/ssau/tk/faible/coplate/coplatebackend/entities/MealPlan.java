@@ -26,10 +26,10 @@ public class MealPlan {
     @JoinColumn(name = "dish_id")
     private Dish dish;
 
-    @Column(name = "day_of_week", nullable = false)
+    @Column(name = "day_of_week", nullable = false) // monday, tuesday, ..., sunday
     private Short dayOfWeek;
 
-    @Column(name = "meal_type", nullable = false, length = 20)
+    @Column(name = "meal_type", nullable = false, length = 20) // breakfast, lunch, dinner
     private String mealType;
 
 }

@@ -7,6 +7,10 @@ import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+
 @Getter
 @Setter
 @Entity
@@ -37,4 +41,6 @@ public class Dish {
     @JoinColumn(name = "created_by")
     private User createdBy;
 
+    @OneToMany(mappedBy = "dish", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    List<DishIngredient> ingredients = new LinkedList<>();
 }

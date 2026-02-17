@@ -6,6 +6,10 @@ import lombok.Setter;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+
 @Getter
 @Setter
 @Entity
@@ -20,8 +24,16 @@ public class Family {
     private String name;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @OnDelete(action = OnDeleteAction.CASCADE)
-    @JoinColumn(name = "owner_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.SET_NULL)
+    @JoinColumn(name = "owner_id")
     private User owner;
 
+    @OneToMany(mappedBy = "family", fetch = FetchType.LAZY)
+    List<User> users = new ArrayList<>();
+
+    @OneToMany(mappedBy = "family", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    List<Dish> dishes = new LinkedList<>();
+
+    @OneToMany(mappedBy = "family", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    List<Purchase> purchases = new LinkedList<>();
 }

@@ -17,10 +17,10 @@ public class User {
     @Column(name = "id", nullable = false)
     private Long id;
 
-    @Column(name = "username", nullable = false, length = 100)
+    @Column(name = "username", nullable = false, length = 100, unique = true)
     private String username;
 
-    @Column(name = "password_hash", nullable = false, length = 100)
+    @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -32,7 +32,8 @@ public class User {
     private String name;
 
     @ColumnDefault("'user'")
-    @Column(name = "role", length = 100)
+    @Column(name = "role", length = 100, nullable = false)
     private String role;
+
 
 }
