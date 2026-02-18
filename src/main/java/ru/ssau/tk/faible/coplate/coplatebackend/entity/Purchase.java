@@ -1,4 +1,4 @@
-package ru.ssau.tk.faible.coplate.coplatebackend.entities;
+package ru.ssau.tk.faible.coplate.coplatebackend.entity;
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -34,7 +34,7 @@ public class Purchase {
 
     @ColumnDefault("'шт'")
     @Column(name = "unit", length = 20)
-    private String unit;
+    private String unit = "шт";
 
     @Column(name = "source", nullable = false, length = 10)
     private String source;

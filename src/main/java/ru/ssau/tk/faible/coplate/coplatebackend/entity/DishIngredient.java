@@ -1,4 +1,4 @@
-package ru.ssau.tk.faible.coplate.coplatebackend.entities;
+package ru.ssau.tk.faible.coplate.coplatebackend.entity;
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -30,6 +30,6 @@ public class DishIngredient {
 
     @ColumnDefault("'шт'")
     @Column(name = "unit", length = 20)
-    private String unit;
+    private String unit = "шт";
 
 }

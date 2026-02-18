@@ -1,4 +1,4 @@
-package ru.ssau.tk.faible.coplate.coplatebackend.entities;
+package ru.ssau.tk.faible.coplate.coplatebackend.entity;
 
 import jakarta.persistence.*;
 import lombok.Getter;

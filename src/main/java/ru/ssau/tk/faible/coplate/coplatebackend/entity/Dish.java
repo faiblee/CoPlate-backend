@@ -1,4 +1,4 @@
-package ru.ssau.tk.faible.coplate.coplatebackend.entities;
+package ru.ssau.tk.faible.coplate.coplatebackend.entity;
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -7,7 +7,6 @@ import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -29,7 +28,7 @@ public class Dish {
 
     @ColumnDefault("'library'")
     @Column(name = "source", nullable = false, length = 10)
-    private String source;
+    private String source = "library";
 
     @ManyToOne(fetch = FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.CASCADE)

@@ -1,7 +1,9 @@
-package ru.ssau.tk.faible.coplate.coplatebackend.entities;
+package ru.ssau.tk.faible.coplate.coplatebackend.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.OnDelete;
@@ -9,6 +11,7 @@ import org.hibernate.annotations.OnDeleteAction;
 
 @Getter
 @Setter
+@NoArgsConstructor
 @Entity
 @Table(name = "users")
 public class User {
@@ -33,7 +36,12 @@ public class User {
 
     @ColumnDefault("'user'")
     @Column(name = "role", length = 100, nullable = false)
-    private String role;
+    private String role = "user";
 
-
+    public User(String username, String passwordHash, String name) {
+        this.username = username;
+        this.passwordHash = passwordHash;
+        this.name = name;
+        this.role = role;
+    }
 }
