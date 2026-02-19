@@ -8,7 +8,7 @@
         <version>4.0.2</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
-    <groupId>ru.ssau.tk.faible.coplate</groupId>
+    <groupId>ru.ssau.tk.faible</groupId>
     <artifactId>coplate-backend</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>coplate-backend</name>

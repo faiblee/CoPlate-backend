@@ -1,7 +1,6 @@
-package ru.ssau.tk.faible.coplate.coplatebackend.entity;
+package ru.ssau.tk.faible.coplatebackend.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -26,13 +25,13 @@ public class User {
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 
+    @Column(name = "name", length = 100)
+    private String name;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.SET_NULL)
     @JoinColumn(name = "family_id")
     private Family family;
-
-    @Column(name = "name", length = 100)
-    private String name;
 
     @ColumnDefault("'user'")
     @Column(name = "role", length = 100, nullable = false)

@@ -1,8 +1,8 @@
-package ru.ssau.tk.faible.coplate.coplatebackend.repository;
+package ru.ssau.tk.faible.coplatebackend.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-import ru.ssau.tk.faible.coplate.coplatebackend.entity.User;
+import ru.ssau.tk.faible.coplatebackend.entity.User;
 
 import java.util.Optional;
 

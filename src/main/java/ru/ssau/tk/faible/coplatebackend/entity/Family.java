@@ -1,7 +1,8 @@
-package ru.ssau.tk.faible.coplate.coplatebackend.entity;
+package ru.ssau.tk.faible.coplatebackend.entity;
 
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
@@ -14,6 +15,7 @@ import java.util.List;
 @Setter
 @Entity
 @Table(name = "families")
+@NoArgsConstructor
 public class Family {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -36,4 +38,9 @@ public class Family {
 
     @OneToMany(mappedBy = "family", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     List<Purchase> purchases = new LinkedList<>();
+
+    public Family(String name, User owner) {
+        this.name = name;
+        this.owner = owner;
+    }
 }

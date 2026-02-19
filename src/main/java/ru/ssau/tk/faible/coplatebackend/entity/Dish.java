@@ -1,7 +1,8 @@
-package ru.ssau.tk.faible.coplate.coplatebackend.entity;
+package ru.ssau.tk.faible.coplatebackend.entity;
 
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.OnDelete;
@@ -14,6 +15,7 @@ import java.util.List;
 @Setter
 @Entity
 @Table(name = "dishes")
+@NoArgsConstructor
 public class Dish {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -42,4 +44,12 @@ public class Dish {
 
     @OneToMany(mappedBy = "dish", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     List<DishIngredient> ingredients = new LinkedList<>();
+
+    public Dish(String name, String description, String source, Family family, User createdBy) {
+        this.name = name;
+        this.description = description;
+        this.source = source;
+        this.family = family;
+        this.createdBy = createdBy;
+    }
 }

@@ -1,12 +1,10 @@
-package ru.ssau.tk.faible.coplate.coplatebackend;
+package ru.ssau.tk.faible.coplatebackend;
 
-import org.springframework.boot.CommandLineRunner;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.Bean;
-import ru.ssau.tk.faible.coplate.coplatebackend.entity.User;
-import ru.ssau.tk.faible.coplate.coplatebackend.repository.UserRepository;
 
+@Slf4j
 @SpringBootApplication
 public class CoplateBackendApplication {
 
