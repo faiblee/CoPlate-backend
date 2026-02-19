@@ -1,0 +1,15 @@
+package ru.ssau.tk.faible.coplatebackend.exception;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
+
+@ResponseStatus(HttpStatus.CONFLICT)
+public class UserAlreadyExistsException extends RuntimeException {
+    public UserAlreadyExistsException() {
+        super("User with that username already exists");
+    }
+
+    public UserAlreadyExistsException(String username) {
+        super("User with username '" + username + "' already exists");
+    }
+}
