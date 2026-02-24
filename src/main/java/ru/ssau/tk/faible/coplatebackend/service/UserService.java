@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import ru.ssau.tk.faible.coplatebackend.dto.UserLoginRequest;
+import ru.ssau.tk.faible.coplatebackend.dto.UserPutRequest;
 import ru.ssau.tk.faible.coplatebackend.dto.UserRequest;
 import ru.ssau.tk.faible.coplatebackend.dto.UserResponse;
 import ru.ssau.tk.faible.coplatebackend.entity.User;
@@ -60,5 +61,37 @@ public class UserService {
 
         return new UserResponse(user.getId(), user.getUsername(), user.getName());
 
+    }
+
+    public UserResponse updateUser(UserPutRequest userRequest, Long id) {
+        // TODO: Проверка прав
+        User updated_user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
+        if (userRequest.getUsername() != null) { // если передан новый username
+            updated_user.setUsername(userRequest.getUsername());
+        }
+        if (userRequest.getName() != null) { // если передано новое имя
+            updated_user.setName(userRequest.getName());
+        }
+        if (userRequest.getNew_password() != null && userRequest.getOld_password() != null) { // если переданы пароли
+            String old_password = userRequest.getOld_password();
+            String new_password = userRequest.getNew_password();
+            // TODO: Переделать на сравнение хэшей
+            if (old_password.equals(updated_user.getPasswordHash())) { // если введен верный старый пароль
+                // TODO: Переделать на добавление хэшированного пароля
+                updated_user.setPasswordHash(new_password);
+            }
+            else {
+                throw new InvalidPasswordException();
+            }
+        }
+
+        User saved_user = userRepository.save(updated_user);
+
+        return new UserResponse(saved_user.getId(), saved_user.getUsername(), saved_user.getName());
+    }
+
+    public void deleteUser(Long id) {
+        // TODO: Проверка прав
+        userRepository.deleteById(id);
     }
 }

@@ -50,7 +50,7 @@ class UserControllerTest {
             }
             """;
 
-        mockMvc.perform(post("http://localhost:8080/api/users/register")
+        mockMvc.perform(post("http://localhost:8080/api/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(userJson))
                 .andExpect(status().isCreated())
