@@ -4,12 +4,21 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+import ru.ssau.tk.faible.coplatebackend.dto.AuthResponse;
 import ru.ssau.tk.faible.coplatebackend.dto.UserLoginRequest;
 import ru.ssau.tk.faible.coplatebackend.dto.UserRequest;
 import ru.ssau.tk.faible.coplatebackend.dto.UserResponse;
+import ru.ssau.tk.faible.coplatebackend.jwt.JwtCore;
+import ru.ssau.tk.faible.coplatebackend.service.UserDetailsServiceImpl;
 import ru.ssau.tk.faible.coplatebackend.service.UserService;
+
+import java.util.TreeSet;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -18,24 +27,38 @@ import ru.ssau.tk.faible.coplatebackend.service.UserService;
 public class AuthController {
 
     private final UserService userService;
+    private final AuthenticationManager authenticationManager;
+    private final JwtCore jwtCore;
 
     // POST /api/auth/register - регистрация пользователя
     @PostMapping("/register")
-    public ResponseEntity<UserResponse> register(@RequestBody UserRequest request) {
-
+    public ResponseEntity<AuthResponse> register(@RequestBody UserRequest request) {
+        log.debug("Получен запрос на регистрацию пользователя с username={}", request.getUsername());
         // Регистрируем пользователя
-        UserResponse userResponse = userService.saveUser(request);;
-
+        UserResponse userResponse = userService.saveUser(request);
+        log.info("Пользователь с username={} успешно добавлен в базу данных с id={}", userResponse.getUsername(), userResponse.getId());
+        String token = jwtCore.generateToken(userResponse.getId(), userResponse.getUsername());
+        log.debug("Токен успешно сгенерирован");
+        AuthResponse authResponse = new AuthResponse(token, userResponse.getId(), userResponse.getUsername(), userResponse.getName());
         // Возвращаем ResponseEntity со статусом 201 CREATED
-        return ResponseEntity.status(HttpStatus.CREATED).body(userResponse);
+        return ResponseEntity.status(HttpStatus.CREATED).body(authResponse);
     }
 
     @GetMapping("/login")
-    public ResponseEntity<UserResponse> login(@RequestBody UserLoginRequest request) {
+    public ResponseEntity<AuthResponse> login(@RequestBody UserLoginRequest request) {
 
-        // TODO: Переделать на использование полученного JWT (??) токена
-        UserResponse userResponse = userService.login(request);
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        request.getUsername(),
+                        request.getPassword()
+                )
+        );
 
-        return ResponseEntity.status(HttpStatus.OK).body(userResponse);
+        UserResponse userResponse = userService.findByUsername(request.getUsername());
+        String token = jwtCore.generateToken(userResponse.getId(), request.getUsername());
+
+        AuthResponse authResponse = new AuthResponse(token, userResponse.getId(), request.getUsername(), userResponse.getName());
+
+        return ResponseEntity.status(HttpStatus.OK).body(authResponse);
     }
 }

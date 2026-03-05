@@ -1,6 +1,8 @@
 package ru.ssau.tk.faible.coplatebackend.repository;
 
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -16,17 +18,12 @@ import ru.ssau.tk.faible.coplatebackend.entity.User;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
 @Testcontainers
 @SpringBootTest
 @AutoConfigureMockMvc
 @Slf4j
 class UserRepositoryTest {
-
-//    @Autowired
-//    private MockMvc mockMvc;
-
     @Autowired
     private UserRepository userRepository;
 
@@ -40,10 +37,15 @@ class UserRepositoryTest {
         registry.add("spring.datasource.password", postgres::getPassword);
     }
 
+    private User user;
+
+    @BeforeEach
+    void setUp() {
+        user = new User("john_d", "hash", "John");
+    }
+
     @Test
     void saveUser() {
-        User user = new User("john_d", "hash", "John");
-
         User saved_user = userRepository.save(user);
         Optional<User> founded_user = userRepository.findByUsername("john_d");
 
@@ -51,5 +53,31 @@ class UserRepositoryTest {
         assertThat(founded_user.get().getName()).isEqualTo("John");
 
         log.info("Test1 was completed!");
+
+        userRepository.deleteById(saved_user.getId());
+    }
+
+    @Test
+    void updateUser() {
+        User saved_user = userRepository.save(user);
+        User new_user = new User(saved_user.getId(), "new_john123", "new_pass", "Johnathan", saved_user.getFamily(), saved_user.getRole());
+
+        User updated_user = userRepository.save(new_user);
+
+        assertThat(updated_user.getName()).isEqualTo("Johnathan");
+        assertThat(updated_user.getPasswordHash()).isEqualTo("new_pass");
+        assertThat(updated_user.getUsername()).isEqualTo("new_john123");
+        assertThat(updated_user.getId()).isEqualTo(saved_user.getId());
+
+        userRepository.deleteById(updated_user.getId());
+    }
+
+    @Test
+    void deleteUser() {
+        User saved_user = userRepository.save(user);
+
+        userRepository.deleteById(saved_user.getId());
+
+        assertThat(userRepository.findById(saved_user.getId())).isEmpty();
     }
 }

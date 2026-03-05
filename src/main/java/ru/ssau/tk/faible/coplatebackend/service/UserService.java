@@ -3,6 +3,7 @@ package ru.ssau.tk.faible.coplatebackend.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import ru.ssau.tk.faible.coplatebackend.dto.UserLoginRequest;
@@ -21,12 +22,13 @@ import ru.ssau.tk.faible.coplatebackend.repository.UserRepository;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public UserResponse saveUser(UserRequest userRequest) throws ResponseStatusException {
         // Создаем Entity для добавления в БД
         User userEntity = new User(
                 userRequest.getUsername(),
-                userRequest.getPassword(),
+                passwordEncoder.encode(userRequest.getPassword()),
                 userRequest.getName()
         );
 
@@ -58,6 +60,8 @@ public class UserService {
     public UserResponse findById(Long id) throws ResponseStatusException {
 
         User user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
+
+        log.debug("Пользователь с id = {} успешно найден", id);
 
         return new UserResponse(user.getId(), user.getUsername(), user.getName());
 
@@ -93,5 +97,12 @@ public class UserService {
     public void deleteUser(Long id) {
         // TODO: Проверка прав
         userRepository.deleteById(id);
+    }
+
+
+    public UserResponse findByUsername(String username) {
+        User user = userRepository.findByUsername(username).orElseThrow(() ->
+                new UserNotFoundException(username));
+        return new UserResponse(user.getId(), user.getUsername(), user.getName());
     }
 }

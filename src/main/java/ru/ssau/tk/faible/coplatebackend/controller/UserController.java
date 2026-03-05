@@ -22,6 +22,7 @@ public class UserController {
     @GetMapping("/{id}")
     public ResponseEntity<UserResponse> getUserById(@PathVariable Long id) {
 
+        log.debug("Получен запрос на получение пользователя по id = {}", id);
         UserResponse userResponse = userService.findById(id);
 
         return ResponseEntity.status(HttpStatus.OK).body(userResponse);

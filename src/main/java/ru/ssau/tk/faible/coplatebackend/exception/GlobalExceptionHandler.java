@@ -35,4 +35,8 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(HttpStatus.UNAUTHORIZED, e.getMessage());
     }
 
+    @ExceptionHandler(FamilyNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleFamilyNotFoundException(FamilyNotFoundException e) {
+        return buildErrorResponse(HttpStatus.NOT_FOUND, e.getMessage());
+    }
 }
