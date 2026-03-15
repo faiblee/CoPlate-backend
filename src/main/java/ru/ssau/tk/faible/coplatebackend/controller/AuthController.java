@@ -6,19 +6,15 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 import ru.ssau.tk.faible.coplatebackend.dto.AuthResponse;
 import ru.ssau.tk.faible.coplatebackend.dto.UserLoginRequest;
 import ru.ssau.tk.faible.coplatebackend.dto.UserRequest;
 import ru.ssau.tk.faible.coplatebackend.dto.UserResponse;
+import ru.ssau.tk.faible.coplatebackend.entity.UserDetailsImplementation;
 import ru.ssau.tk.faible.coplatebackend.jwt.JwtCore;
-import ru.ssau.tk.faible.coplatebackend.service.UserDetailsServiceImpl;
 import ru.ssau.tk.faible.coplatebackend.service.UserService;
-
-import java.util.TreeSet;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -45,7 +41,7 @@ public class AuthController {
     }
 
     @GetMapping("/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody UserLoginRequest request) {
+    public ResponseEntity<AuthResponse> login(@RequestBody UserLoginRequest request, @AuthenticationPrincipal UserDetailsImplementation currentUser) {
 
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -54,7 +50,7 @@ public class AuthController {
                 )
         );
 
-        UserResponse userResponse = userService.findByUsername(request.getUsername());
+        UserResponse userResponse = userService.findByUsername(request.getUsername(), currentUser);
         String token = jwtCore.generateToken(userResponse.getId(), request.getUsername());
 
         AuthResponse authResponse = new AuthResponse(token, userResponse.getId(), request.getUsername(), userResponse.getName());

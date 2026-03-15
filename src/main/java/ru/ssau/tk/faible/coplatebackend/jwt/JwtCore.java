@@ -20,7 +20,6 @@ public class JwtCore {
     @Value("${faible.coplatebackend.lifetime}")
     private int lifetime;
 
-
     private SecretKey getSecretKey() {
         return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }

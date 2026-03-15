@@ -39,4 +39,14 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleFamilyNotFoundException(FamilyNotFoundException e) {
         return buildErrorResponse(HttpStatus.NOT_FOUND, e.getMessage());
     }
+
+    @ExceptionHandler(ForbiddenException.class)
+    public ResponseEntity<ErrorResponse> handleForbiddenException(ForbiddenException e) {
+        return buildErrorResponse(HttpStatus.FORBIDDEN, e.getMessage());
+    }
+
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<ErrorResponse> handleUnauthorizedException(UnauthorizedException e) {
+        return buildErrorResponse(HttpStatus.UNAUTHORIZED, e.getMessage());
+    }
 }

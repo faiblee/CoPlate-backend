@@ -7,6 +7,7 @@ import lombok.Setter;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
+import java.io.LineNumberReader;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -25,6 +26,9 @@ public class Family {
     @Column(name = "name", nullable = false, length = 100)
     private String name;
 
+    @Column(name = "invite_code", length = 10, unique = true)
+    private String inviteCode;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.SET_NULL)
     @JoinColumn(name = "owner_id")
@@ -42,5 +46,10 @@ public class Family {
     public Family(String name, User owner) {
         this.name = name;
         this.owner = owner;
+    }
+    public Family(String name, User owner, String inviteCode) {
+        this.name = name;
+        this.owner = owner;
+        this.inviteCode = inviteCode;
     }
 }
