@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import ru.ssau.tk.faible.coplatebackend.dto.FamilyJoinRequest;
+import ru.ssau.tk.faible.coplatebackend.dto.FamilyPutRequest;
 import ru.ssau.tk.faible.coplatebackend.dto.FamilyRequest;
 import ru.ssau.tk.faible.coplatebackend.dto.FamilyResponse;
 import ru.ssau.tk.faible.coplatebackend.entity.User;
@@ -47,10 +48,47 @@ public class FamilyController {
         return ResponseEntity.status(HttpStatus.OK).body(familyResponse);
     }
 
-    @GetMapping("/{id}/users")
+    @GetMapping("/{id}/members")
     public ResponseEntity<List<User>> listMembers(@PathVariable Long id, @AuthenticationPrincipal UserDetailsImplementation currentUser) {
 
         List<User> users = familyService.getMembers(id, currentUser);
 
+        return ResponseEntity.status(HttpStatus.OK).body(users);
+    }
+
+    @GetMapping("/{id}/invite_code")
+    public ResponseEntity<String> getInviteCode(@PathVariable Long id, @AuthenticationPrincipal UserDetailsImplementation currentUser) {
+
+        String invite_code = familyService.getInviteCode(id, currentUser);
+
+        return ResponseEntity.status(HttpStatus.OK).body(invite_code);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<FamilyResponse> updateFamily(
+            @PathVariable Long id,
+            @RequestBody FamilyPutRequest request,
+            @AuthenticationPrincipal UserDetailsImplementation currentUser
+    ) {
+
+        FamilyResponse familyResponse = familyService.updateFamily(request, id, currentUser);
+
+        return ResponseEntity.status(HttpStatus.OK).body(familyResponse);
+    }
+
+    @PutMapping("/{id}/kick")
+    public ResponseEntity<List<User>> leaveFromFamily(
+            @PathVariable Long id,
+            @RequestBody Long userId,
+            @AuthenticationPrincipal UserDetailsImplementation currentUser
+    ) {
+        List<User> members = familyService.kickFromFamily(id, userId, currentUser);
+
+        return ResponseEntity.status(HttpStatus.OK).body(members);
+    }
+
+    @DeleteMapping("/{id}")
+    public void deleteFamily(@PathVariable Long id, @AuthenticationPrincipal UserDetailsImplementation currentUser) {
+        familyService.deleteFamily(id, currentUser);
     }
 }

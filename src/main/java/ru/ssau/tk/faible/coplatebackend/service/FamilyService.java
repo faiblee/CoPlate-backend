@@ -2,11 +2,11 @@ package ru.ssau.tk.faible.coplatebackend.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.ssau.tk.faible.coplatebackend.dto.FamilyJoinRequest;
-import ru.ssau.tk.faible.coplatebackend.dto.FamilyRequest;
-import ru.ssau.tk.faible.coplatebackend.dto.FamilyResponse;
+import org.springframework.web.server.ResponseStatusException;
+import ru.ssau.tk.faible.coplatebackend.dto.*;
 import ru.ssau.tk.faible.coplatebackend.entity.Family;
 import ru.ssau.tk.faible.coplatebackend.entity.User;
 import ru.ssau.tk.faible.coplatebackend.entity.UserDetailsImplementation;
@@ -58,7 +58,7 @@ public class FamilyService {
         owner.setFamily(savedFamily);
         userRepository.save(owner);
 
-        return new FamilyResponse(savedFamily.getId(), savedFamily.getName(), savedFamily.getOwner().getId());
+        return new FamilyResponse(savedFamily);
     }
 
     public FamilyResponse getFamilyById(Long id, UserDetailsImplementation currentUser) {
@@ -71,11 +71,27 @@ public class FamilyService {
         Family family = familyRepository.findById(id).orElseThrow(() -> new FamilyNotFoundException(id));
 
         // если запрашивает не владелец семьи и не админ
-        if ((!Objects.equals(currentUser.getId(), family.getOwner().getId()) && !currentUser.getRole().equals("ADMIN"))) {
+        if (!Objects.equals(currentUser.getId(), family.getOwner().getId())
+                && !Objects.equals(currentUser.getFamily().getId(), family.getId())
+                && !currentUser.getRole().equals("ADMIN")) {
             throw new ForbiddenException();
         }
 
-        return new FamilyResponse(family.getId(), family.getName(), family.getOwner().getId());
+        return new FamilyResponse(family);
+    }
+
+    public String getInviteCode(Long id, UserDetailsImplementation currentUser) {
+        if (currentUser == null) {
+            throw new UnauthorizedException();
+        }
+
+        Family family = familyRepository.findById(id).orElseThrow(() -> new FamilyNotFoundException(id));
+
+        if (!Objects.equals(currentUser.getFamily().getId(), family.getId()) && !currentUser.getRole().equals("ADMIN")) {
+            throw new ForbiddenException();
+        }
+
+        return family.getInviteCode();
     }
 
     public FamilyResponse joinFamily(FamilyJoinRequest request, UserDetailsImplementation currentUser) {
@@ -100,12 +116,90 @@ public class FamilyService {
         user.setFamily(family);
         userRepository.save(user);
 
-        return new FamilyResponse(family.getId(), family.getName(), family.getOwner().getId());
+        return new FamilyResponse(family);
     }
 
     public List<User> getMembers(Long id, UserDetailsImplementation currentUser) {
+        if (currentUser == null) {
+            throw new UnauthorizedException();
+        }
+
+        if (!Objects.equals(currentUser.getFamily().getId(), id) && !Objects.equals(currentUser.getRole(), "ADMIN")) {
+            throw new ForbiddenException();
+        }
+
         Family family = familyRepository.findById(id).orElseThrow(FamilyNotFoundException::new);
 
+        return family.getUsers();
+    }
 
+    public FamilyResponse updateFamily(FamilyPutRequest request, Long id, UserDetailsImplementation currentUser) {
+
+        // если пользователь не авторизован
+        if (currentUser == null) {
+            throw new UnauthorizedException();
+        }
+
+        Family family = familyRepository.findById(id).orElseThrow(FamilyNotFoundException::new);
+
+        if (!Objects.equals(family.getOwner().getId(), currentUser.getId()) && currentUser.getRole().equals("ADMIN")) {
+            throw new ForbiddenException();
+        }
+
+        if (request.getName() != null) { // если передан новый name
+            family.setName(request.getName());
+        }
+        if (request.getOwnerId() != null) { // если передан новый владелец
+            User new_owner = userRepository.findById(request.getOwnerId()).orElseThrow(
+                    () -> new UserNotFoundException(request.getOwnerId()));
+            family.setOwner(new_owner);
+        }
+
+        Family saved_fam = familyRepository.save(family);
+
+        return new FamilyResponse(saved_fam);
+    }
+
+    public void deleteFamily(Long id, UserDetailsImplementation currentUser) {
+        if (currentUser == null) {
+            throw new UnauthorizedException();
+        }
+
+        Family family = familyRepository.findById(id).orElseThrow(FamilyNotFoundException::new);
+
+        if (!Objects.equals(family.getOwner().getId(), currentUser.getId()) && !Objects.equals(currentUser.getRole(), "ADMIN")) {
+            throw new ForbiddenException();
+        }
+
+        familyRepository.deleteById(family.getId());
+    }
+
+    public List<User> kickFromFamily(Long id, Long userId, UserDetailsImplementation currentUser) {
+        if (currentUser == null) {
+            throw new UnauthorizedException();
+        }
+
+        Family family = familyRepository.findById(id).orElseThrow(FamilyNotFoundException::new);
+
+        User user_to_kick = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
+
+        // Если запрашивает удаление не админ не владелец семьи и не сам пользователь
+        if (!Objects.equals(family.getOwner().getId(), currentUser.getId())
+                && currentUser.getRole().equals("ADMIN")
+                && !Objects.equals(currentUser.getId(), userId)
+        ) {
+            throw new ForbiddenException();
+        }
+
+        // Если хотим выгнать владельца семьи
+        if (Objects.equals(family.getOwner().getId(), userId)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Нельзя выгнать владельца семьи");
+        }
+
+        user_to_kick.setFamily(null); // удаляем семью у пользователя
+
+        userRepository.save(user_to_kick);
+
+        return family.getUsers();
     }
 }
