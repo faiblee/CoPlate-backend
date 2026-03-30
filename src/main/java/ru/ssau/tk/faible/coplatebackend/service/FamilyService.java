@@ -7,16 +7,17 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import ru.ssau.tk.faible.coplatebackend.dto.*;
-import ru.ssau.tk.faible.coplatebackend.entity.Family;
-import ru.ssau.tk.faible.coplatebackend.entity.User;
-import ru.ssau.tk.faible.coplatebackend.entity.UserDetailsImplementation;
+import ru.ssau.tk.faible.coplatebackend.entity.*;
 import ru.ssau.tk.faible.coplatebackend.exception.*;
 import ru.ssau.tk.faible.coplatebackend.repository.FamilyRepository;
+import ru.ssau.tk.faible.coplatebackend.repository.MealPlanRepository;
 import ru.ssau.tk.faible.coplatebackend.repository.UserRepository;
 import ru.ssau.tk.faible.coplatebackend.util.InviteCodeGenerator;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -25,6 +26,7 @@ public class FamilyService {
 
     private final FamilyRepository familyRepository;
     private final UserRepository userRepository;
+    private final MealPlanRepository mealPlanRepository;
 
     @Transactional
     public FamilyResponse createFamily(FamilyRequest familyRequest, UserDetailsImplementation currentUser) {
@@ -50,9 +52,22 @@ public class FamilyService {
             inviteCode = InviteCodeGenerator.generate(); // TODO: странно, мб можно сделать лучше
         } while (familyRepository.existsByInviteCode(inviteCode)); // пока код не станет уникальным, генерируем новый
 
+
+
         Family family = new Family(familyRequest.getName(), owner, inviteCode);
 
         Family savedFamily = familyRepository.save(family);
+
+        // Заполняем MealPlan 21 значениями на всю неделю на 3 приема пищи
+        for (int i = 1; i <= 7; i++) {
+            MealPlan mealPlanBreakfast = new MealPlan(savedFamily, null, i, "breakfast");
+            MealPlan mealPlanLunch = new MealPlan(savedFamily, null, i, "lunch");
+            MealPlan mealPlanBDinner = new MealPlan(savedFamily, null, i, "dinner");
+
+            mealPlanRepository.save(mealPlanBreakfast);
+            mealPlanRepository.save(mealPlanLunch);
+            mealPlanRepository.save(mealPlanBDinner);
+        }
 
         // ставим владельцу соответствующую семью
         owner.setFamily(savedFamily);
@@ -73,7 +88,7 @@ public class FamilyService {
         // если запрашивает не владелец семьи и не админ
         if (!Objects.equals(currentUser.getId(), family.getOwner().getId())
                 && !Objects.equals(currentUser.getFamily().getId(), family.getId())
-                && !currentUser.getRole().equals("ADMIN")) {
+                && !currentUser.getRole().equals("admin")) {
             throw new ForbiddenException();
         }
 
@@ -87,7 +102,7 @@ public class FamilyService {
 
         Family family = familyRepository.findById(id).orElseThrow(() -> new FamilyNotFoundException(id));
 
-        if (!Objects.equals(currentUser.getFamily().getId(), family.getId()) && !currentUser.getRole().equals("ADMIN")) {
+        if (!Objects.equals(currentUser.getFamily().getId(), family.getId()) && !currentUser.getRole().equals("admin")) {
             throw new ForbiddenException();
         }
 
@@ -100,7 +115,7 @@ public class FamilyService {
             throw new UnauthorizedException();
         }
         // если запрашивается не текущий пользователь
-        if ((!Objects.equals(currentUser.getId(), request.getUserId()) && !currentUser.getRole().equals("ADMIN"))) {
+        if ((!Objects.equals(currentUser.getId(), request.getUserId()) && !currentUser.getRole().equals("admin"))) {
             throw new ForbiddenException();
         }
 
@@ -124,7 +139,7 @@ public class FamilyService {
             throw new UnauthorizedException();
         }
 
-        if (!Objects.equals(currentUser.getFamily().getId(), id) && !Objects.equals(currentUser.getRole(), "ADMIN")) {
+        if (!Objects.equals(currentUser.getFamily().getId(), id) && !Objects.equals(currentUser.getRole(), "admin")) {
             throw new ForbiddenException();
         }
 
@@ -142,7 +157,7 @@ public class FamilyService {
 
         Family family = familyRepository.findById(id).orElseThrow(FamilyNotFoundException::new);
 
-        if (!Objects.equals(family.getOwner().getId(), currentUser.getId()) && currentUser.getRole().equals("ADMIN")) {
+        if (!Objects.equals(family.getOwner().getId(), currentUser.getId()) && currentUser.getRole().equals("admin")) {
             throw new ForbiddenException();
         }
 
@@ -167,14 +182,14 @@ public class FamilyService {
 
         Family family = familyRepository.findById(id).orElseThrow(FamilyNotFoundException::new);
 
-        if (!Objects.equals(family.getOwner().getId(), currentUser.getId()) && !Objects.equals(currentUser.getRole(), "ADMIN")) {
+        if (!Objects.equals(family.getOwner().getId(), currentUser.getId()) && !Objects.equals(currentUser.getRole(), "admin")) {
             throw new ForbiddenException();
         }
 
         familyRepository.deleteById(family.getId());
     }
 
-    public List<User> kickFromFamily(Long id, Long userId, UserDetailsImplementation currentUser) {
+    public List<Long> kickFromFamily(Long id, Long userId, UserDetailsImplementation currentUser) {
         if (currentUser == null) {
             throw new UnauthorizedException();
         }
@@ -185,7 +200,7 @@ public class FamilyService {
 
         // Если запрашивает удаление не админ не владелец семьи и не сам пользователь
         if (!Objects.equals(family.getOwner().getId(), currentUser.getId())
-                && currentUser.getRole().equals("ADMIN")
+                && currentUser.getRole().equals("admin")
                 && !Objects.equals(currentUser.getId(), userId)
         ) {
             throw new ForbiddenException();
@@ -200,6 +215,35 @@ public class FamilyService {
 
         userRepository.save(user_to_kick);
 
-        return family.getUsers();
+        return family.getUsers().stream().map(User::getId).toList();
+    }
+
+    public List<DishInfoResponse> getAllFamilyDishes(Long familyId, UserDetailsImplementation currentUser) {
+        if (currentUser == null) {
+            throw new UnauthorizedException();
+        }
+
+        Family family = familyRepository.findById(familyId)
+                .orElseThrow(() -> new FamilyNotFoundException(familyId));
+
+        List<Long> familyMembersIds = family.getUsers().stream().map(User::getId).toList();
+
+        if (!familyMembersIds.contains(currentUser.getId()) && !Objects.equals(currentUser.getRole(), "admin")) {
+            throw new ForbiddenException();
+        }
+
+        List<Dish> dishes = family.getDishes();
+
+        return Optional.ofNullable(dishes)
+                .orElse(Collections.emptyList())
+                .stream()
+                .filter(Objects::nonNull) // пропускаем null-объекты
+                .map(dish -> new DishInfoResponse(
+                        dish.getId(),
+                        dish.getName(),
+                        dish.getDescription(),
+                        dish.getSource()
+                ))
+                .toList();
     }
 }

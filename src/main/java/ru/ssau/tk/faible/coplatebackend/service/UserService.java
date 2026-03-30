@@ -52,7 +52,7 @@ public class UserService{
             throw new UnauthorizedException();
         }
         // если запрашивается не текущий пользователь
-        if ((!Objects.equals(currentUser.getId(), id) && !currentUser.getRole().equals("ADMIN"))) {
+        if ((!Objects.equals(currentUser.getId(), id) && !currentUser.getRole().equals("admin"))) {
             throw new ForbiddenException();
         }
         // Доступ разрешен
@@ -72,7 +72,7 @@ public class UserService{
             throw new UnauthorizedException();
         }
         // если запрашивается не текущий пользователь
-        if ((!Objects.equals(currentUser.getId(), id) && !currentUser.getRole().equals("ADMIN"))) {
+        if ((!Objects.equals(currentUser.getId(), id) && !currentUser.getRole().equals("admin"))) {
             throw new ForbiddenException();
         }
         User user_to_update = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
@@ -105,7 +105,7 @@ public class UserService{
             throw new UnauthorizedException();
         }
         // если запрашивается не текущий пользователь
-        if ((!Objects.equals(currentUser.getId(), id) && !currentUser.getRole().equals("ADMIN"))) {
+        if ((!Objects.equals(currentUser.getId(), id) && !currentUser.getRole().equals("admin"))) {
             throw new ForbiddenException();
         }
         userRepository.deleteById(id);
@@ -113,14 +113,6 @@ public class UserService{
 
 
     public UserResponse findByUsername(String username, UserDetailsImplementation currentUser) {
-        // если пользователь не авторизован
-        if (currentUser == null) {
-            throw new UnauthorizedException();
-        }
-        // если запрашивается не текущий пользователь
-        if ((!Objects.equals(currentUser.getUsername(), username) && !currentUser.getRole().equals("ADMIN"))) {
-            throw new ForbiddenException();
-        }
 
         User user = userRepository.findByUsername(username).orElseThrow(() ->
                 new UserNotFoundException(username));

@@ -49,4 +49,19 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleUnauthorizedException(UnauthorizedException e) {
         return buildErrorResponse(HttpStatus.UNAUTHORIZED, e.getMessage());
     }
+
+    @ExceptionHandler(BadCreateDishRequest.class)
+    public ResponseEntity<ErrorResponse> handleBadCreateDishRequest(BadCreateDishRequest e) {
+        return buildErrorResponse(HttpStatus.BAD_REQUEST, e.getMessage());
+    }
+
+    @ExceptionHandler(DishNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleDishNotFoundException(DishNotFoundException e) {
+        return buildErrorResponse(HttpStatus.NOT_FOUND, e.getMessage());
+    }
+
+    @ExceptionHandler(MealPlanNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleMealPlanNotFoundException(MealPlanNotFoundException e) {
+        return buildErrorResponse(HttpStatus.NOT_FOUND, e.getMessage());
+    }
 }

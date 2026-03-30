@@ -25,6 +25,7 @@ import ru.ssau.tk.faible.coplatebackend.entity.UserDetailsImplementation;
 import ru.ssau.tk.faible.coplatebackend.jwt.JwtTokenFilter;
 import ru.ssau.tk.faible.coplatebackend.service.UserDetailsServiceImpl;
 import ru.ssau.tk.faible.coplatebackend.service.UserService;
+import ru.ssau.tk.faible.coplatebackend.util.CustomAuthEntryPoint;
 
 @Configuration
 @EnableWebSecurity
@@ -33,6 +34,7 @@ public class SecurityConfig {
 
     private final UserDetailsServiceImpl userDetailsService;
     private final JwtTokenFilter tokenFilter;
+    private final CustomAuthEntryPoint customAuthEntryPoint;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -60,7 +62,7 @@ public class SecurityConfig {
                             new CorsConfiguration().applyPermitDefaultValues())
                 )
                 .exceptionHandling(exceptions -> exceptions
-                        .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
+                        .authenticationEntryPoint(customAuthEntryPoint)
                 )
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)

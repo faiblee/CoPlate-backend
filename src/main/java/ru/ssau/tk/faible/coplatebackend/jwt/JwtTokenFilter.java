@@ -46,7 +46,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
                     log.info("Username из токена={}", username);
                 } catch (ExpiredJwtException e) {
                     log.error("Токен истек!");
-                    //TODO
+//                    throw new RuntimeException("Токен истек!");
                 }
                 if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                     userDetails = userDetailsService.loadUserByUsername(username);
@@ -67,7 +67,6 @@ public class JwtTokenFilter extends OncePerRequestFilter {
         } catch (Exception e) {
             log.error("Ошибка при валидации токена, ошибка:{}", e.getMessage());
         }
-        log.info("Токен успешно проверен!");
         filterChain.doFilter(request, response);
     }
 }

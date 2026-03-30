@@ -13,4 +13,5 @@ public interface FamilyRepository extends JpaRepository<Family, Long> {
     boolean existsByInviteCode(String inviteCode);
 
     Optional<Family> findFamilyByInviteCode(String inviteCode);
+
 }

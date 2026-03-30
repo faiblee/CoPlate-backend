@@ -43,6 +43,8 @@ public class AuthController {
     @GetMapping("/login")
     public ResponseEntity<AuthResponse> login(@RequestBody UserLoginRequest request, @AuthenticationPrincipal UserDetailsImplementation currentUser) {
 
+        log.debug("Получен запрос на авторизацию пользователя с username={}", request.getUsername());
+
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.getUsername(),
@@ -50,9 +52,12 @@ public class AuthController {
                 )
         );
 
-        UserResponse userResponse = userService.findByUsername(request.getUsername(), currentUser);
-        String token = jwtCore.generateToken(userResponse.getId(), request.getUsername());
+        log.info("Пользователь успешно авторизован");
 
+        UserResponse userResponse = userService.findByUsername(request.getUsername(), currentUser);
+
+        log.debug("Пользователь успешно найден в бд");
+        String token = jwtCore.generateToken(userResponse.getId(), request.getUsername());
         AuthResponse authResponse = new AuthResponse(token, userResponse.getId(), request.getUsername(), userResponse.getName());
 
         return ResponseEntity.status(HttpStatus.OK).body(authResponse);

@@ -12,10 +12,12 @@ public class FamilyResponse {
     private Long id;
     private String name;
     private Long ownerId;
+    private String inviteCode;
 
     public FamilyResponse(Family family) {
         this.id = family.getId();
         this.name = family.getName();
         this.ownerId = family.getOwner().getId();
+        this.inviteCode = family.getInviteCode();
     }
 }

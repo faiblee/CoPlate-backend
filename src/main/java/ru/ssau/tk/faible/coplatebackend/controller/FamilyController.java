@@ -6,13 +6,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import ru.ssau.tk.faible.coplatebackend.dto.FamilyJoinRequest;
-import ru.ssau.tk.faible.coplatebackend.dto.FamilyPutRequest;
-import ru.ssau.tk.faible.coplatebackend.dto.FamilyRequest;
-import ru.ssau.tk.faible.coplatebackend.dto.FamilyResponse;
+import ru.ssau.tk.faible.coplatebackend.dto.*;
 import ru.ssau.tk.faible.coplatebackend.entity.User;
 import ru.ssau.tk.faible.coplatebackend.entity.UserDetailsImplementation;
 import ru.ssau.tk.faible.coplatebackend.service.FamilyService;
+import ru.ssau.tk.faible.coplatebackend.service.MealPlanService;
 
 import java.util.List;
 
@@ -23,6 +21,7 @@ import java.util.List;
 public class FamilyController {
 
     private final FamilyService familyService;
+    private final MealPlanService mealPlanService;
 
     @PostMapping()
     public ResponseEntity<FamilyResponse> createFamily(@RequestBody FamilyRequest request, @AuthenticationPrincipal UserDetailsImplementation currentUser) {
@@ -77,18 +76,57 @@ public class FamilyController {
     }
 
     @PutMapping("/{id}/kick")
-    public ResponseEntity<List<User>> leaveFromFamily(
+    public ResponseEntity<List<Long>> leaveFromFamily(
             @PathVariable Long id,
             @RequestBody Long userId,
             @AuthenticationPrincipal UserDetailsImplementation currentUser
     ) {
-        List<User> members = familyService.kickFromFamily(id, userId, currentUser);
+        List<Long> ids = familyService.kickFromFamily(id, userId, currentUser);
 
-        return ResponseEntity.status(HttpStatus.OK).body(members);
+        return ResponseEntity.status(HttpStatus.OK).body(ids);
     }
 
     @DeleteMapping("/{id}")
-    public void deleteFamily(@PathVariable Long id, @AuthenticationPrincipal UserDetailsImplementation currentUser) {
+    public ResponseEntity<Void> deleteFamily(@PathVariable Long id, @AuthenticationPrincipal UserDetailsImplementation currentUser) {
+
         familyService.deleteFamily(id, currentUser);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/meal-plans")
+    public ResponseEntity<MealPlanResponse> addDishToMealPlan(@PathVariable Long id,
+                                                              @RequestBody MealPlanCreateRequest request,
+                                                              @AuthenticationPrincipal UserDetailsImplementation currentUser)
+    {
+        MealPlanAddRequest addRequest = new MealPlanAddRequest(id, request.getDishId(), request.getDayOfWeek(), request.getMealType());
+
+        MealPlanResponse mealPlanResponse = mealPlanService.addDishToMealPlan(addRequest, currentUser);
+
+        return ResponseEntity.status(HttpStatus.OK).body(mealPlanResponse);
+    }
+
+    @DeleteMapping("/{id}/meal-plans/week")
+    public ResponseEntity<Void> clearWeekMealPlan(@PathVariable Long id, @AuthenticationPrincipal UserDetailsImplementation currentUser) {
+
+        mealPlanService.clearWeekPlan(id, currentUser);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{id}/meal-plans/week")
+    public ResponseEntity<WeekPlanResponse> getWeekFamilyMealPlan(@PathVariable Long id, @AuthenticationPrincipal UserDetailsImplementation currentUser) {
+
+        WeekPlanResponse response = mealPlanService.getWeekFamilyMealPlan(id, currentUser);
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @GetMapping("/{id}/dishes")
+    public ResponseEntity<List<DishInfoResponse>> getAllFamilyDishes(@PathVariable Long id, @AuthenticationPrincipal UserDetailsImplementation currentUser) {
+
+        List<DishInfoResponse> dishes = familyService.getAllFamilyDishes(id, currentUser);
+
+        return ResponseEntity.status(HttpStatus.OK).body(dishes);
     }
 }

@@ -1,7 +1,9 @@
 package ru.ssau.tk.faible.coplatebackend.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
@@ -10,6 +12,8 @@ import org.hibernate.annotations.OnDeleteAction;
 @Setter
 @Entity
 @Table(name = "meal_plans")
+@AllArgsConstructor
+@NoArgsConstructor
 public class MealPlan {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,10 +30,16 @@ public class MealPlan {
     @JoinColumn(name = "dish_id")
     private Dish dish;
 
-    @Column(name = "day_of_week", nullable = false) // monday, tuesday, ..., sunday
-    private Short dayOfWeek;
+    @Column(name = "day_of_week", nullable = false) // 1-monday, 2-tuesday, ..., 7-sunday
+    private Integer dayOfWeek;
 
     @Column(name = "meal_type", nullable = false, length = 20) // breakfast, lunch, dinner
     private String mealType;
 
+    public MealPlan(Family family, Dish dish, Integer dayOfWeek, String mealType) {
+        this.family = family;
+        this.dish = dish;
+        this.dayOfWeek = dayOfWeek;
+        this.mealType = mealType;
+    }
 }

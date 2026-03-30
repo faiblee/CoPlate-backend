@@ -43,6 +43,9 @@ public class Family {
     @OneToMany(mappedBy = "family", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     List<Purchase> purchases = new LinkedList<>();
 
+    @OneToMany(mappedBy = "family", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    List<MealPlan> mealPlans = new LinkedList<>();
+
     public Family(String name, User owner) {
         this.name = name;
         this.owner = owner;
