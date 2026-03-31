@@ -165,13 +165,35 @@ public class FamilyController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+    @PutMapping("/{id}/purchases/{purchaseId}")
+    public ResponseEntity<PurchaseResponse> changePurchase(@PathVariable Long id,
+                                                           @PathVariable Long purchaseId,
+                                                           @RequestBody PurchasePutRequest request,
+                                                           @AuthenticationPrincipal UserDetailsImplementation currentUser) {
+
+        PurchaseResponse response = purchaseService.changePurchase(id, purchaseId, request, currentUser);
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
     @DeleteMapping("/{id}/purchases/{purchaseId}")
     public ResponseEntity<Void> deletePurchase(@PathVariable Long id,
-                                                         @PathVariable Long purchaseId,
-                                                         @AuthenticationPrincipal UserDetailsImplementation currentUser) {
+                                               @PathVariable Long purchaseId,
+                                               @AuthenticationPrincipal UserDetailsImplementation currentUser) {
 
         purchaseService.deletePurchase(id, purchaseId, currentUser);
 
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/purchases/add-purchases-from-dish/{dishId}")
+    public ResponseEntity<List<PurchaseResponse>> addPurchasesFromDishToPurchases(@PathVariable Long id,
+                                                                                  @PathVariable Long dishId,
+                                                                                  @AuthenticationPrincipal UserDetailsImplementation currentUser) {
+
+        List<PurchaseResponse> purchaseResponses = purchaseService.addPurchasesFromDish(id, dishId, currentUser);
+
+        return ResponseEntity.status(HttpStatus.OK).body(purchaseResponses);
+
     }
 }

@@ -64,4 +64,9 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleMealPlanNotFoundException(MealPlanNotFoundException e) {
         return buildErrorResponse(HttpStatus.NOT_FOUND, e.getMessage());
     }
+
+    @ExceptionHandler(PurchaseNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handlePurchaseNotFoundException(PurchaseNotFoundException e) {
+        return buildErrorResponse(HttpStatus.NOT_FOUND, e.getMessage());
+    }
 }

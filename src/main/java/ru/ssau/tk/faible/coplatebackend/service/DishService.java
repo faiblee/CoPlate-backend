@@ -4,19 +4,20 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.ssau.tk.faible.coplatebackend.dto.DishCreateCustomRequest;
+import ru.ssau.tk.faible.coplatebackend.dto.DishIngredientRequest;
 import ru.ssau.tk.faible.coplatebackend.dto.DishResponse;
 import ru.ssau.tk.faible.coplatebackend.dto.DishPutRequest;
-import ru.ssau.tk.faible.coplatebackend.entity.Dish;
-import ru.ssau.tk.faible.coplatebackend.entity.Family;
-import ru.ssau.tk.faible.coplatebackend.entity.User;
-import ru.ssau.tk.faible.coplatebackend.entity.UserDetailsImplementation;
+import ru.ssau.tk.faible.coplatebackend.entity.*;
 import ru.ssau.tk.faible.coplatebackend.exception.*;
+import ru.ssau.tk.faible.coplatebackend.repository.DishIngredientRepository;
 import ru.ssau.tk.faible.coplatebackend.repository.DishRepository;
 import ru.ssau.tk.faible.coplatebackend.repository.FamilyRepository;
 import ru.ssau.tk.faible.coplatebackend.repository.UserRepository;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +27,7 @@ public class DishService {
     DishRepository dishRepository;
     UserRepository userRepository;
     FamilyRepository familyRepository;
+    DishIngredientRepository dishIngredientRepository;
 
     public DishResponse createCustomDish(DishCreateCustomRequest request, UserDetailsImplementation currentUser) {
         if (currentUser == null) {
@@ -46,7 +48,23 @@ public class DishService {
 
         Dish dish = new Dish(request.getName(), request.getDescription(), request.getSource(), family, owner);
 
-        dishRepository.save(dish);
+        // добавляем все ингредиенты
+        Dish savedDish = dishRepository.save(dish);
+
+        List<DishIngredientRequest> ingredientRequests = request.getIngredients();
+
+        List<DishIngredient> ingredients = Optional.ofNullable(ingredientRequests)
+                .orElse(Collections.emptyList())
+                .stream()
+                .map(ingredientRequest -> new DishIngredient(
+                        ingredientRequest.getName(),
+                        savedDish,
+                        ingredientRequest.getQuantity(),
+                        ingredientRequest.getUnit()
+                        )
+                ).toList();
+
+        dishIngredientRepository.saveAll(ingredients);
 
         return new DishResponse(dish);
     }
