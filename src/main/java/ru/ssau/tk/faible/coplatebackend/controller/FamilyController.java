@@ -11,6 +11,7 @@ import ru.ssau.tk.faible.coplatebackend.entity.User;
 import ru.ssau.tk.faible.coplatebackend.entity.UserDetailsImplementation;
 import ru.ssau.tk.faible.coplatebackend.service.FamilyService;
 import ru.ssau.tk.faible.coplatebackend.service.MealPlanService;
+import ru.ssau.tk.faible.coplatebackend.service.PurchaseService;
 
 import java.util.List;
 
@@ -22,6 +23,7 @@ public class FamilyController {
 
     private final FamilyService familyService;
     private final MealPlanService mealPlanService;
+    private final PurchaseService purchaseService;
 
     @PostMapping()
     public ResponseEntity<FamilyResponse> createFamily(@RequestBody FamilyRequest request, @AuthenticationPrincipal UserDetailsImplementation currentUser) {
@@ -67,8 +69,7 @@ public class FamilyController {
     public ResponseEntity<FamilyResponse> updateFamily(
             @PathVariable Long id,
             @RequestBody FamilyPutRequest request,
-            @AuthenticationPrincipal UserDetailsImplementation currentUser
-    ) {
+            @AuthenticationPrincipal UserDetailsImplementation currentUser) {
 
         FamilyResponse familyResponse = familyService.updateFamily(request, id, currentUser);
 
@@ -79,8 +80,7 @@ public class FamilyController {
     public ResponseEntity<List<Long>> leaveFromFamily(
             @PathVariable Long id,
             @RequestBody Long userId,
-            @AuthenticationPrincipal UserDetailsImplementation currentUser
-    ) {
+            @AuthenticationPrincipal UserDetailsImplementation currentUser) {
         List<Long> ids = familyService.kickFromFamily(id, userId, currentUser);
 
         return ResponseEntity.status(HttpStatus.OK).body(ids);
@@ -97,8 +97,7 @@ public class FamilyController {
     @PostMapping("/{id}/meal-plans")
     public ResponseEntity<MealPlanResponse> addDishToMealPlan(@PathVariable Long id,
                                                               @RequestBody MealPlanCreateRequest request,
-                                                              @AuthenticationPrincipal UserDetailsImplementation currentUser)
-    {
+                                                              @AuthenticationPrincipal UserDetailsImplementation currentUser) {
         MealPlanAddRequest addRequest = new MealPlanAddRequest(id, request.getDishId(), request.getDayOfWeek(), request.getMealType());
 
         MealPlanResponse mealPlanResponse = mealPlanService.addDishToMealPlan(addRequest, currentUser);
@@ -128,5 +127,51 @@ public class FamilyController {
         List<DishInfoResponse> dishes = familyService.getAllFamilyDishes(id, currentUser);
 
         return ResponseEntity.status(HttpStatus.OK).body(dishes);
+    }
+
+    @PostMapping("/{id}/purchases")
+    public ResponseEntity<PurchaseResponse> addPurchase(@PathVariable Long id,
+                                                        @RequestBody PurchaseRequest request,
+                                                        @AuthenticationPrincipal UserDetailsImplementation currentUser) {
+
+        PurchaseResponse response = purchaseService.addPurchase(id, request, currentUser);
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @GetMapping("/{id}/purchases")
+    public ResponseEntity<List<PurchaseResponse>> addPurchase(@PathVariable Long id, @AuthenticationPrincipal UserDetailsImplementation currentUser) {
+
+        List<PurchaseResponse> responses = purchaseService.getAllFamilyPurchases(id, currentUser);
+
+        return ResponseEntity.status(HttpStatus.OK).body(responses);
+    }
+
+    @DeleteMapping("/{id}/purchases")
+    public ResponseEntity<Void> clearPurchases(@PathVariable Long id, @AuthenticationPrincipal UserDetailsImplementation currentUser) {
+
+        purchaseService.clearPurchases(id, currentUser);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{id}/purchases/{purchaseId}/bought")
+    public ResponseEntity<PurchaseResponse> changeBought(@PathVariable Long id,
+                                                         @PathVariable Long purchaseId,
+                                                         @AuthenticationPrincipal UserDetailsImplementation currentUser) {
+
+        PurchaseResponse response = purchaseService.changeBought(id, purchaseId, currentUser);
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @DeleteMapping("/{id}/purchases/{purchaseId}")
+    public ResponseEntity<Void> deletePurchase(@PathVariable Long id,
+                                                         @PathVariable Long purchaseId,
+                                                         @AuthenticationPrincipal UserDetailsImplementation currentUser) {
+
+        purchaseService.deletePurchase(id, purchaseId, currentUser);
+
+        return ResponseEntity.noContent().build();
     }
 }

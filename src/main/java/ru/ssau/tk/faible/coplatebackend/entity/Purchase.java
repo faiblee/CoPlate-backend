@@ -1,7 +1,9 @@
 package ru.ssau.tk.faible.coplatebackend.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.OnDelete;
@@ -11,6 +13,8 @@ import org.hibernate.annotations.OnDeleteAction;
 @Setter
 @Entity
 @Table(name = "purchases")
+@AllArgsConstructor
+@NoArgsConstructor
 public class Purchase {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -44,4 +48,14 @@ public class Purchase {
     @JoinColumn(name = "dish_id")
     private Dish dish;
 
+
+    public Purchase(String name, Family family, Boolean isBought, Integer quantity, String unit, String source, Dish dish) {
+        this.name = name;
+        this.family = family;
+        this.isBought = isBought;
+        this.quantity = quantity;
+        this.unit = unit;
+        this.source = source;
+        this.dish = dish;
+    }
 }
