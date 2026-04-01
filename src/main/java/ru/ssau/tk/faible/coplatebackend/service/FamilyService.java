@@ -134,7 +134,7 @@ public class FamilyService {
         return new FamilyResponse(family);
     }
 
-    public List<User> getMembers(Long id, UserDetailsImplementation currentUser) {
+    public List<UserResponse> getMembers(Long id, UserDetailsImplementation currentUser) {
         if (currentUser == null) {
             throw new UnauthorizedException();
         }
@@ -143,9 +143,20 @@ public class FamilyService {
             throw new ForbiddenException();
         }
 
-        Family family = familyRepository.findById(id).orElseThrow(FamilyNotFoundException::new);
+        Family family = familyRepository.findById(id)
+                .orElseThrow(() -> new FamilyNotFoundException(id));
 
-        return family.getUsers();
+        List<User> users = family.getUsers();
+
+        return Optional.ofNullable(users)
+                .orElse(Collections.emptyList())
+                .stream()
+                .map(user -> new UserResponse(
+                        user.getId(),
+                        user.getUsername(),
+                        user.getName()
+                        )
+                ).toList();
     }
 
     public FamilyResponse updateFamily(FamilyPutRequest request, Long id, UserDetailsImplementation currentUser) {
@@ -189,7 +200,7 @@ public class FamilyService {
         familyRepository.deleteById(family.getId());
     }
 
-    public List<Long> kickFromFamily(Long id, Long userId, UserDetailsImplementation currentUser) {
+    public List<UserResponse> kickFromFamily(Long id, Long userId, UserDetailsImplementation currentUser) {
         if (currentUser == null) {
             throw new UnauthorizedException();
         }
@@ -215,7 +226,17 @@ public class FamilyService {
 
         userRepository.save(user_to_kick);
 
-        return family.getUsers().stream().map(User::getId).toList();
+        List<User> users = family.getUsers();
+
+        return Optional.ofNullable(users)
+                .orElse(Collections.emptyList())
+                .stream()
+                .map(user -> new UserResponse(
+                                user.getId(),
+                                user.getUsername(),
+                                user.getName()
+                        )
+                ).toList();
     }
 
     public List<DishInfoResponse> getAllFamilyDishes(Long familyId, UserDetailsImplementation currentUser) {

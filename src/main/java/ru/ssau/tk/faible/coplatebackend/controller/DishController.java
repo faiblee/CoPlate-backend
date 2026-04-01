@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import ru.ssau.tk.faible.coplatebackend.dto.DishCreateCustomRequest;
+import ru.ssau.tk.faible.coplatebackend.dto.DishIngredientResponse;
 import ru.ssau.tk.faible.coplatebackend.dto.DishPutRequest;
 import ru.ssau.tk.faible.coplatebackend.dto.DishResponse;
 import ru.ssau.tk.faible.coplatebackend.entity.UserDetailsImplementation;
@@ -20,7 +21,7 @@ import java.util.List;
 @Slf4j
 public class DishController {
 
-    DishService dishService;
+    private final DishService dishService;
 
     @GetMapping("/{id}")
     public ResponseEntity<DishResponse> getDishById(@PathVariable Long id, @AuthenticationPrincipal UserDetailsImplementation currentUser) {
@@ -60,5 +61,13 @@ public class DishController {
         dishService.deleteById(id, currentUser);
 
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{id}/ingredients")
+    public ResponseEntity<List<DishIngredientResponse>> getDishIngredients(@PathVariable Long id, @AuthenticationPrincipal UserDetailsImplementation currentUser) {
+
+        List<DishIngredientResponse> ingredients = dishService.getDishIngredients(id, currentUser);
+
+        return ResponseEntity.status(HttpStatus.OK).body(ingredients);
     }
 }

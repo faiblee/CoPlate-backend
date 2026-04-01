@@ -3,10 +3,7 @@ package ru.ssau.tk.faible.coplatebackend.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import ru.ssau.tk.faible.coplatebackend.dto.DishCreateCustomRequest;
-import ru.ssau.tk.faible.coplatebackend.dto.DishIngredientRequest;
-import ru.ssau.tk.faible.coplatebackend.dto.DishResponse;
-import ru.ssau.tk.faible.coplatebackend.dto.DishPutRequest;
+import ru.ssau.tk.faible.coplatebackend.dto.*;
 import ru.ssau.tk.faible.coplatebackend.entity.*;
 import ru.ssau.tk.faible.coplatebackend.exception.*;
 import ru.ssau.tk.faible.coplatebackend.repository.DishIngredientRepository;
@@ -24,10 +21,10 @@ import java.util.Optional;
 @Slf4j
 public class DishService {
 
-    DishRepository dishRepository;
-    UserRepository userRepository;
-    FamilyRepository familyRepository;
-    DishIngredientRepository dishIngredientRepository;
+    private final DishRepository dishRepository;
+    private final UserRepository userRepository;
+    private final FamilyRepository familyRepository;
+    private final DishIngredientRepository dishIngredientRepository;
 
     public DishResponse createCustomDish(DishCreateCustomRequest request, UserDetailsImplementation currentUser) {
         if (currentUser == null) {
@@ -66,7 +63,9 @@ public class DishService {
 
         dishIngredientRepository.saveAll(ingredients);
 
-        return new DishResponse(dish);
+        savedDish.getIngredients().addAll(ingredients);
+
+        return new DishResponse(savedDish);
     }
 
     public DishResponse updateDish(DishPutRequest request, UserDetailsImplementation currentUser) {
@@ -75,7 +74,7 @@ public class DishService {
         }
         Dish dish = dishRepository.findById(request.getDishId())
                 .orElseThrow(() -> new DishNotFoundException(request.getDishId()));
-        if (!dish.getCreatedBy().getId().equals(currentUser.getId()) && !Objects.equals(currentUser.getRole(), "admin")) {
+        if (!dish.getFamily().getId().equals(currentUser.getFamily().getId()) && !Objects.equals(currentUser.getRole(), "admin")) {
             throw new ForbiddenException();
         }
         if (request.getName() != null) dish.setName(request.getName());
@@ -91,14 +90,23 @@ public class DishService {
         }
         Dish dish = dishRepository.findById(id)
                 .orElseThrow(() -> new DishNotFoundException(id));
-        if (!dish.getCreatedBy().getId().equals(currentUser.getId())
+        if (!dish.getFamily().getId().equals(currentUser.getFamily().getId())
                 && !Objects.equals(currentUser.getRole(), "admin")
                 && !Objects.equals(dish.getSource(), "library"))
         {
             throw new ForbiddenException();
         }
         if (dish.getSource().equals("library")) {
-            return new DishResponse(dish.getId(), dish.getName(), dish.getDescription());
+            List<DishIngredientResponse> ingredients = Optional.ofNullable(dish.getIngredients())
+                    .orElse(Collections.emptyList())
+                    .stream()
+                    .map(ingredient -> new DishIngredientResponse(
+                            ingredient.getId(),
+                            ingredient.getName(),
+                            ingredient.getQuantity(),
+                            ingredient.getUnit()
+                    )).toList();
+            return new DishResponse(dish.getId(), dish.getName(), dish.getDescription(), ingredients);
         } else {
             return new DishResponse(dish);
         }
@@ -118,11 +126,35 @@ public class DishService {
         if (currentUser == null) {
             throw new UnauthorizedException();
         }
-        Dish dish = dishRepository.findById(id).orElseThrow(() -> new DishNotFoundException(id));
-        if (!Objects.equals(dish.getCreatedBy().getId(), currentUser.getId()) && !Objects.equals(currentUser.getRole(), "admin")) {
+        Dish dish = dishRepository.findById(id)
+                .orElseThrow(() -> new DishNotFoundException(id));
+        if (!dish.getFamily().getId().equals(currentUser.getFamily().getId()) && !Objects.equals(currentUser.getRole(), "admin")) {
             throw new ForbiddenException();
         }
 
         dishRepository.deleteById(id);
+    }
+
+    public List<DishIngredientResponse> getDishIngredients(Long id, UserDetailsImplementation currentUser) {
+        if (currentUser == null) {
+            throw new UnauthorizedException();
+        }
+        Dish dish = dishRepository.findById(id)
+                .orElseThrow(() -> new DishNotFoundException(id));
+        if (!dish.getFamily().getId().equals(currentUser.getFamily().getId()) && !Objects.equals(currentUser.getRole(), "admin")) {
+            throw new ForbiddenException();
+        }
+
+        List<DishIngredient> ingredients = dish.getIngredients();
+
+        return Optional.ofNullable(ingredients)
+                .orElse(Collections.emptyList())
+                .stream()
+                .map(ingredient -> new DishIngredientResponse(
+                        ingredient.getId(),
+                        ingredient.getName(),
+                        ingredient.getQuantity(),
+                        ingredient.getUnit()
+                )).toList();
     }
 }

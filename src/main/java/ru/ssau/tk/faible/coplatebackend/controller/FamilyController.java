@@ -50,9 +50,9 @@ public class FamilyController {
     }
 
     @GetMapping("/{id}/members")
-    public ResponseEntity<List<User>> listMembers(@PathVariable Long id, @AuthenticationPrincipal UserDetailsImplementation currentUser) {
+    public ResponseEntity<List<UserResponse>> listMembers(@PathVariable Long id, @AuthenticationPrincipal UserDetailsImplementation currentUser) {
 
-        List<User> users = familyService.getMembers(id, currentUser);
+        List<UserResponse> users = familyService.getMembers(id, currentUser);
 
         return ResponseEntity.status(HttpStatus.OK).body(users);
     }
@@ -77,13 +77,13 @@ public class FamilyController {
     }
 
     @PutMapping("/{id}/kick")
-    public ResponseEntity<List<Long>> leaveFromFamily(
+    public ResponseEntity<List<UserResponse>> leaveFromFamily(
             @PathVariable Long id,
             @RequestBody Long userId,
             @AuthenticationPrincipal UserDetailsImplementation currentUser) {
-        List<Long> ids = familyService.kickFromFamily(id, userId, currentUser);
+        List<UserResponse> users = familyService.kickFromFamily(id, userId, currentUser);
 
-        return ResponseEntity.status(HttpStatus.OK).body(ids);
+        return ResponseEntity.status(HttpStatus.OK).body(users);
     }
 
     @DeleteMapping("/{id}")

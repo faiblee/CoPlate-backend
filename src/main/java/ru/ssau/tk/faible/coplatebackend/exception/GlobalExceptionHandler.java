@@ -65,6 +65,11 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(HttpStatus.NOT_FOUND, e.getMessage());
     }
 
+    @ExceptionHandler(AlreadyFamilyException.class)
+    public ResponseEntity<ErrorResponse> handleAlreadyFamilyException(AlreadyFamilyException e) {
+        return buildErrorResponse(HttpStatus.CONFLICT, e.getMessage());
+    }
+
     @ExceptionHandler(PurchaseNotFoundException.class)
     public ResponseEntity<ErrorResponse> handlePurchaseNotFoundException(PurchaseNotFoundException e) {
         return buildErrorResponse(HttpStatus.NOT_FOUND, e.getMessage());

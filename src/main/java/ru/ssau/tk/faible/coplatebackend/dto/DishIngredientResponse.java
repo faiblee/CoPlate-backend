@@ -7,8 +7,9 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class DishPutRequest {
-    private Long dishId;
+public class DishIngredientResponse {
+    private Long id;
     private String name;
-    private String description;
+    private Integer quantity;
+    private String unit;
 }
