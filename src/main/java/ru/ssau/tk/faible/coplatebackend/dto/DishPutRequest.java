@@ -11,5 +11,4 @@ public class DishPutRequest {
     private Long dishId;
     private String name;
     private String description;
-
 }

@@ -19,9 +19,9 @@ import java.util.*;
 @Slf4j
 public class PurchaseService {
 
-    private FamilyRepository familyRepository;
-    private PurchaseRepository purchaseRepository;
-    private DishRepository dishRepository;
+    private final FamilyRepository familyRepository;
+    private final PurchaseRepository purchaseRepository;
+    private final DishRepository dishRepository;
 
     public PurchaseResponse addPurchase(Long familyId, PurchaseRequest request, UserDetailsImplementation currentUser) {
         if (currentUser == null) {
