@@ -3,6 +3,7 @@ package ru.ssau.tk.faible.coplatebackend.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.ssau.tk.faible.coplatebackend.dto.*;
 import ru.ssau.tk.faible.coplatebackend.entity.*;
 import ru.ssau.tk.faible.coplatebackend.exception.*;
@@ -13,6 +14,7 @@ import ru.ssau.tk.faible.coplatebackend.repository.MealPlanRepository;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -43,16 +45,16 @@ public class MealPlanService {
             throw new ForbiddenException();
         }
 
-        MealPlan mealPlan = mealPlanRepository.findByFamilyIsAndDayOfWeekEqualsAndMealTypeEquals(family, request.getDayOfWeek(), request.getMealType())
-                .orElseThrow(MealPlanNotFoundException::new);
 
-        mealPlan.setDish(dish);
+        MealPlan plan = new MealPlan(family, dish, request.getDayOfWeek(), request.getMealType());
+        mealPlanRepository.save(plan);
 
-        MealPlan savedMealPlan = mealPlanRepository.save(mealPlan);
+        List<MealPlan> mealPlansAfterSave = mealPlanRepository.findByFamilyIsAndDayOfWeekEqualsAndMealTypeEquals(family, request.getDayOfWeek(), request.getMealType());
 
-        return new MealPlanResponse(savedMealPlan);
+        return new MealPlanResponse(mealPlansAfterSave);
     }
 
+    @Transactional
     public void clearWeekPlan(Long familyId, UserDetailsImplementation currentUser) {
         if (currentUser == null) {
             throw new UnauthorizedException();
@@ -67,13 +69,7 @@ public class MealPlanService {
             throw new ForbiddenException();
         }
 
-        for (int i = 1; i <= 7; i++) {
-            List<MealPlan> mealPlans = mealPlanRepository.findByFamilyIsAndDayOfWeekEquals(family, i);
-            for (MealPlan plan : mealPlans) {
-                plan.setDish(null);
-                mealPlanRepository.save(plan);
-            }
-        }
+        mealPlanRepository.deleteAllByFamilyId(familyId);
     }
 
     public WeekPlanResponse getWeekFamilyMealPlan(Long familyId, UserDetailsImplementation currentUser) {
@@ -94,31 +90,40 @@ public class MealPlanService {
 
         List<DayMenu> days = new ArrayList<>();
         for (int day = 1; day <= 7; day++) {
-            DayMenu dayMenu = new DayMenu(
-                    day,
-                    findMealSlot(plans, day, "breakfast"),
-                    findMealSlot(plans, day, "lunch"),
-                    findMealSlot(plans, day, "dinner")
-            );
-            days.add(dayMenu);
+            MealSlot breakfast = findMealSlot(plans, day, "breakfast");
+            MealSlot lunch = findMealSlot(plans, day, "lunch");
+            MealSlot dinner = findMealSlot(plans, day, "dinner");
+            DayMenu dayMenu = new DayMenu();
+            dayMenu.setDayOfWeek(day);
+            if (!breakfast.getDishes().isEmpty()) {
+                dayMenu.setBreakfast(breakfast);
+            }
+            if (!lunch.getDishes().isEmpty()) {
+                dayMenu.setLunch(lunch);
+            }
+            if (!dinner.getDishes().isEmpty()) {
+                dayMenu.setDinner(dinner);
+            }
+            if (dayMenu.getBreakfast() != null || dayMenu.getLunch() != null || dayMenu.getDinner() != null) { // если хотя бы одно блюдо есть, добавляем этот день
+                days.add(dayMenu);
+            }
         }
 
         return new WeekPlanResponse(familyId, days);
     }
 
     private MealSlot findMealSlot(List<MealPlan> plans, int dayOfWeek, String mealType) {
-        return plans.stream()
+        List<DishInfoResponse> dishes = plans.stream()
                 .filter(p -> p.getDayOfWeek() == dayOfWeek && p.getMealType().equals(mealType))
-                .findFirst()
-                .map(plan -> new MealSlot(
-                        mealType,
-                        plan.getDish() != null ? new DishInfoResponse(
-                                plan.getDish().getId(),
-                                plan.getDish().getName(),
-                                plan.getDish().getDescription(),
-                                plan.getDish().getSource()
-                        ) : null
-                ))
-                .orElse(new MealSlot(mealType, null));
+                .map(plan -> plan.getDish() != null ? new DishInfoResponse(
+                        plan.getDish().getId(),
+                        plan.getDish().getName(),
+                        plan.getDish().getDescription(),
+                        plan.getDish().getSource()
+                ) : null)
+                .filter(Objects::nonNull)  // Убираем null на случай, если блюдо не загрузилось
+                .toList();
+
+        return new MealSlot(mealType, dishes);
     }
 }

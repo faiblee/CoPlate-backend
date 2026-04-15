@@ -58,17 +58,6 @@ public class FamilyService {
 
         Family savedFamily = familyRepository.save(family);
 
-        // Заполняем MealPlan 21 значениями на всю неделю на 3 приема пищи
-        for (int i = 1; i <= 7; i++) {
-            MealPlan mealPlanBreakfast = new MealPlan(savedFamily, null, i, "breakfast");
-            MealPlan mealPlanLunch = new MealPlan(savedFamily, null, i, "lunch");
-            MealPlan mealPlanBDinner = new MealPlan(savedFamily, null, i, "dinner");
-
-            mealPlanRepository.save(mealPlanBreakfast);
-            mealPlanRepository.save(mealPlanLunch);
-            mealPlanRepository.save(mealPlanBDinner);
-        }
-
         // ставим владельцу соответствующую семью
         owner.setFamily(savedFamily);
         userRepository.save(owner);
