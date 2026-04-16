@@ -40,7 +40,7 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.CREATED).body(authResponse);
     }
 
-    @GetMapping("/login")
+    @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@RequestBody UserLoginRequest request, @AuthenticationPrincipal UserDetailsImplementation currentUser) {
 
         log.debug("Получен запрос на авторизацию пользователя с username={}", request.getUsername());
