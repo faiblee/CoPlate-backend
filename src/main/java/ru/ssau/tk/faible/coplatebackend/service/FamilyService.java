@@ -143,7 +143,8 @@ public class FamilyService {
                 .map(user -> new UserResponse(
                         user.getId(),
                         user.getUsername(),
-                        user.getName()
+                        user.getName(),
+                        user.getFamily() == null ? null : user.getFamily().getId()
                         )
                 ).toList();
     }
@@ -223,7 +224,8 @@ public class FamilyService {
                 .map(user -> new UserResponse(
                                 user.getId(),
                                 user.getUsername(),
-                                user.getName()
+                                user.getName(),
+                                user.getFamily() == null ? null : user.getFamily().getId()
                         )
                 ).toList();
     }

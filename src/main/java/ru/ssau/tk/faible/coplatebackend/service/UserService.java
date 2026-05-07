@@ -42,7 +42,7 @@ public class UserService{
         }
 
         // Возвращаем DTO ответа
-        return new UserResponse(savedUser.getId(), savedUser.getUsername(), savedUser.getName());
+        return new UserResponse(savedUser.getId(), savedUser.getUsername(), savedUser.getName(), savedUser.getFamily() == null ? null : savedUser.getFamily().getId());
     }
 
     public UserResponse findById(Long id, UserDetailsImplementation currentUser) throws ResponseStatusException {
@@ -60,7 +60,7 @@ public class UserService{
 
         log.debug("Пользователь с id = {} успешно найден", id);
 
-        return new UserResponse(user.getId(), user.getUsername(), user.getName());
+        return new UserResponse(user.getId(), user.getUsername(), user.getName(), user.getFamily() == null ? null : user.getFamily().getId());
 
     }
 
@@ -96,7 +96,7 @@ public class UserService{
 
         User saved_user = userRepository.save(user_to_update);
 
-        return new UserResponse(saved_user.getId(), saved_user.getUsername(), saved_user.getName());
+        return new UserResponse(saved_user.getId(), saved_user.getUsername(), saved_user.getName(), saved_user.getFamily() == null ? null : saved_user.getFamily().getId());
     }
 
     public void deleteUser(Long id, UserDetailsImplementation currentUser) {
@@ -117,6 +117,6 @@ public class UserService{
         User user = userRepository.findByUsername(username).orElseThrow(() ->
                 new UserNotFoundException(username));
 
-        return new UserResponse(user.getId(), user.getUsername(), user.getName());
+        return new UserResponse(user.getId(), user.getUsername(), user.getName(), user.getFamily() == null ? null : user.getFamily().getId());
     }
 }
