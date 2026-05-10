@@ -11,5 +11,5 @@ import java.util.List;
 @NoArgsConstructor
 public class MealSlot {
     private String mealType;
-    private List<DishInfoResponse> dishes;
+    private List<DishInfoResponseWithMealPlan> dishes;
 }

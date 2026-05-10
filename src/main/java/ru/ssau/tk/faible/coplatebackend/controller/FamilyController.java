@@ -104,12 +104,12 @@ public class FamilyController {
         return ResponseEntity.status(HttpStatus.OK).body(mealPlanResponse);
     }
 
-    @DeleteMapping("/{id}/meal-plans")
+    @DeleteMapping("/{id}/meal-plans/{planId}")
     public ResponseEntity<Void> deleteDishFromMealPlan(@PathVariable Long id,
-                                                       @RequestBody MealPlanRequest request,
+                                                       @PathVariable Long planId,
                                                        @AuthenticationPrincipal UserDetailsImplementation currentUser) {
 
-        mealPlanService.deleteDishFromMealPlan(id, request, currentUser);
+        mealPlanService.deleteDishFromMealPlan(id, planId, currentUser);
 
         return ResponseEntity.noContent().build();
     }

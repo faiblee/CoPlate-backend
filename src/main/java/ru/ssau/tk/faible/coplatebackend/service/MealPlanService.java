@@ -45,7 +45,6 @@ public class MealPlanService {
             throw new ForbiddenException();
         }
 
-
         MealPlan plan = new MealPlan(family, dish, request.getDayOfWeek(), request.getMealType());
         mealPlanRepository.save(plan);
 
@@ -54,7 +53,7 @@ public class MealPlanService {
         return new MealPlanResponse(mealPlansAfterSave);
     }
 
-    public void deleteDishFromMealPlan(Long familyId, MealPlanRequest request, UserDetailsImplementation currentUser) {
+    public void deleteDishFromMealPlan(Long familyId, Long planId, UserDetailsImplementation currentUser) {
 
         if (currentUser == null) {
             throw new UnauthorizedException();
@@ -68,15 +67,8 @@ public class MealPlanService {
             throw new ForbiddenException();
         }
 
-        Dish dish = dishRepository.findById(request.getDishId())
-                .orElseThrow(() -> new DishNotFoundException(request.getDishId()));
-
-        if (!(Objects.equals(dish.getSource(), "library") || dish.getFamily().getId().equals(family.getId()) || currentUser.getRole().equals("admin"))) {
-            throw new ForbiddenException();
-        }
-
-        MealPlan plan = mealPlanRepository.findByFamilyIsAndDayOfWeekEqualsAndMealTypeEqualsAndDishIs(
-                family, request.getDayOfWeek(), request.getMealType(), dish);
+        MealPlan plan = mealPlanRepository.findById(planId)
+                .orElseThrow(MealPlanNotFoundException::new);
 
         if (!plan.getFamily().getId().equals(familyId)) {
             throw new ForbiddenException();
@@ -144,10 +136,11 @@ public class MealPlanService {
     }
 
     private MealSlot findMealSlot(List<MealPlan> plans, int dayOfWeek, String mealType) {
-        List<DishInfoResponse> dishes = plans.stream()
+        List<DishInfoResponseWithMealPlan> dishes = plans.stream()
                 .filter(p -> p.getDayOfWeek() == dayOfWeek && p.getMealType().equals(mealType))
-                .map(plan -> plan.getDish() != null ? new DishInfoResponse(
+                .map(plan -> plan.getDish() != null ? new DishInfoResponseWithMealPlan(
                         plan.getDish().getId(),
+                        plan.getId(),
                         plan.getDish().getName(),
                         plan.getDish().getDescription(),
                         plan.getDish().getSource()
