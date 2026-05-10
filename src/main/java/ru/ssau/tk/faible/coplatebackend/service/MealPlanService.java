@@ -54,6 +54,37 @@ public class MealPlanService {
         return new MealPlanResponse(mealPlansAfterSave);
     }
 
+    public void deleteDishFromMealPlan(Long familyId, MealPlanRequest request, UserDetailsImplementation currentUser) {
+
+        if (currentUser == null) {
+            throw new UnauthorizedException();
+        }
+        Family family = familyRepository.findById(familyId)
+                .orElseThrow(() -> new FamilyNotFoundException(familyId));
+
+        List<Long> familyMembersIds = family.getUsers().stream().map(User::getId).toList();
+
+        if (!familyMembersIds.contains(currentUser.getId()) && !Objects.equals(currentUser.getRole(), "admin")) {
+            throw new ForbiddenException();
+        }
+
+        Dish dish = dishRepository.findById(request.getDishId())
+                .orElseThrow(() -> new DishNotFoundException(request.getDishId()));
+
+        if (!(Objects.equals(dish.getSource(), "library") || dish.getFamily().getId().equals(family.getId()) || currentUser.getRole().equals("admin"))) {
+            throw new ForbiddenException();
+        }
+
+        MealPlan plan = mealPlanRepository.findByFamilyIsAndDayOfWeekEqualsAndMealTypeEqualsAndDishIs(
+                family, request.getDayOfWeek(), request.getMealType(), dish);
+
+        if (!plan.getFamily().getId().equals(familyId)) {
+            throw new ForbiddenException();
+        }
+
+        mealPlanRepository.delete(plan);
+    }
+
     @Transactional
     public void clearWeekPlan(Long familyId, UserDetailsImplementation currentUser) {
         if (currentUser == null) {

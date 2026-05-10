@@ -7,7 +7,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import ru.ssau.tk.faible.coplatebackend.dto.*;
-import ru.ssau.tk.faible.coplatebackend.entity.User;
 import ru.ssau.tk.faible.coplatebackend.entity.UserDetailsImplementation;
 import ru.ssau.tk.faible.coplatebackend.service.FamilyService;
 import ru.ssau.tk.faible.coplatebackend.service.MealPlanService;
@@ -96,13 +95,23 @@ public class FamilyController {
 
     @PostMapping("/{id}/meal-plans")
     public ResponseEntity<MealPlanResponse> addDishToMealPlan(@PathVariable Long id,
-                                                              @RequestBody MealPlanCreateRequest request,
+                                                              @RequestBody MealPlanRequest request,
                                                               @AuthenticationPrincipal UserDetailsImplementation currentUser) {
         MealPlanAddRequest addRequest = new MealPlanAddRequest(id, request.getDishId(), request.getDayOfWeek(), request.getMealType());
 
         MealPlanResponse mealPlanResponse = mealPlanService.addDishToMealPlan(addRequest, currentUser);
 
         return ResponseEntity.status(HttpStatus.OK).body(mealPlanResponse);
+    }
+
+    @DeleteMapping("/{id}/meal-plans")
+    public ResponseEntity<Void> deleteDishFromMealPlan(@PathVariable Long id,
+                                                       @RequestBody MealPlanRequest request,
+                                                       @AuthenticationPrincipal UserDetailsImplementation currentUser) {
+
+        mealPlanService.deleteDishFromMealPlan(id, request, currentUser);
+
+        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{id}/meal-plans/week")

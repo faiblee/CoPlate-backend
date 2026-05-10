@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class MealPlanCreateRequest {
+public class MealPlanRequest {
     private Long dishId;
     private Integer dayOfWeek;
     private String mealType;
