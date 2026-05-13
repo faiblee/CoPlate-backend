@@ -84,19 +84,52 @@ public class DishService {
         return new DishResponse(dish);
     }
 
+//    public DishResponse getDishById(Long id, UserDetailsImplementation currentUser) {
+//        if (currentUser == null) {
+//            throw new UnauthorizedException();
+//        }
+//        Dish dish = dishRepository.findById(id)
+//                .orElseThrow(() -> new DishNotFoundException(id));
+//        if (!dish.getFamily().getId().equals(currentUser.getFamily().getId())
+//                && !Objects.equals(currentUser.getRole(), "admin")
+//                && !Objects.equals(dish.getSource(), "library"))
+//        {
+//            throw new ForbiddenException();
+//        }
+//        if (dish.getSource().equals("library")) {
+//            List<DishIngredientResponse> ingredients = Optional.ofNullable(dish.getIngredients())
+//                    .orElse(Collections.emptyList())
+//                    .stream()
+//                    .map(ingredient -> new DishIngredientResponse(
+//                            ingredient.getId(),
+//                            ingredient.getName(),
+//                            ingredient.getQuantity(),
+//                            ingredient.getUnit()
+//                    )).toList();
+//            return new DishResponse(dish.getId(), dish.getName(), dish.getDescription(), ingredients);
+//        } else {
+//            return new DishResponse(dish);
+//        }
+//    }
+
     public DishResponse getDishById(Long id, UserDetailsImplementation currentUser) {
         if (currentUser == null) {
             throw new UnauthorizedException();
         }
         Dish dish = dishRepository.findById(id)
                 .orElseThrow(() -> new DishNotFoundException(id));
-        if (!dish.getFamily().getId().equals(currentUser.getFamily().getId())
-                && !Objects.equals(currentUser.getRole(), "admin")
-                && !Objects.equals(dish.getSource(), "library"))
-        {
-            throw new ForbiddenException();
+        final boolean isLibrary = Objects.equals(dish.getSource(), "library");
+        if (!isLibrary) {
+            if (!Objects.equals(currentUser.getRole(), "admin")) {
+                if (dish.getFamily() == null || currentUser.getFamily() == null) {
+                    throw new ForbiddenException();
+                }
+                if (!Objects.equals(dish.getFamily().getId(), currentUser.getFamily().getId())) {
+                    throw new ForbiddenException();
+                }
+            }
         }
-        if (dish.getSource().equals("library")) {
+        if (isLibrary) {
             List<DishIngredientResponse> ingredients = Optional.ofNullable(dish.getIngredients())
                     .orElse(Collections.emptyList())
                     .stream()
@@ -105,11 +138,11 @@ public class DishService {
                             ingredient.getName(),
                             ingredient.getQuantity(),
                             ingredient.getUnit()
-                    )).toList();
+                    ))
+                    .toList();
             return new DishResponse(dish.getId(), dish.getName(), dish.getDescription(), ingredients);
-        } else {
-            return new DishResponse(dish);
         }
+        return new DishResponse(dish);
     }
 
     public List<DishResponse> getLibraryDishes(UserDetailsImplementation currentUser) {
